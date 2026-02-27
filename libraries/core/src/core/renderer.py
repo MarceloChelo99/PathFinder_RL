@@ -9,6 +9,7 @@ class PygameRenderer:
       - SPACE: pause/resume simulation
       - N: advance one step when paused
       - ESC / close button: stop run
+      - Click checkbox: toggle normalized quadrant means overlay text
     """
 
     def __init__(self, env, show_pheromone=True, scale_pheromone=1.0, cell_size=36):
@@ -32,11 +33,14 @@ class PygameRenderer:
         self.font = pygame.font.SysFont("consolas", 18)
         self.small_font = pygame.font.SysFont("consolas", 16)
 
-        self.info_h = 90
+        self.info_h = 170
         width = env.W * cell_size
         height = env.H * cell_size + self.info_h
         self.screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("PathFinder RL Simulation")
+
+        self.show_quad_means = False
+        self.checkbox_rect = pygame.Rect(10, env.H * cell_size + 118, 18, 18)
 
     def _handle_event(self, event):
         if event.type == self.pygame.QUIT:
@@ -48,6 +52,9 @@ class PygameRenderer:
                 self.paused = not self.paused
             elif event.key == self.pygame.K_n and self.paused:
                 return "step"
+        elif event.type == self.pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.checkbox_rect.collidepoint(event.pos):
+                self.show_quad_means = not self.show_quad_means
         return None
 
     def _process_events(self):
@@ -113,7 +120,7 @@ class PygameRenderer:
         center = (ax * self.cell_size + self.cell_size // 2, ay * self.cell_size + self.cell_size // 2)
         pygame.draw.circle(self.screen, (0, 0, 0), center, self.cell_size // 3)
 
-    def _draw_status(self, title, subtitle=""):
+    def _draw_status(self, title, subtitle="", detail_lines=None):
         pygame = self.pygame
         y0 = self.env.H * self.cell_size
         pygame.draw.rect(self.screen, (20, 20, 20), pygame.Rect(0, y0, self.env.W * self.cell_size, self.info_h))
@@ -130,14 +137,31 @@ class PygameRenderer:
         self.screen.blit(text2, (8, y0 + 32))
         self.screen.blit(text3, (8, y0 + 56))
 
-    def update(self, title="", subtitle=""):
+        if detail_lines:
+            for idx, line in enumerate(detail_lines[:3]):
+                text = self.small_font.render(line[:220], True, (160, 210, 255))
+                self.screen.blit(text, (8, y0 + 78 + idx * 20))
+
+        pygame.draw.rect(self.screen, (220, 220, 220), self.checkbox_rect, 1)
+        if self.show_quad_means:
+            pygame.draw.line(self.screen, (220, 220, 220), self.checkbox_rect.topleft, self.checkbox_rect.bottomright, 2)
+            pygame.draw.line(self.screen, (220, 220, 220), self.checkbox_rect.topright, self.checkbox_rect.bottomleft, 2)
+
+        check_text = self.small_font.render(
+            "Show normalized 2x2 quadrant means (UL, UR, DR, DL)",
+            True,
+            (210, 210, 210),
+        )
+        self.screen.blit(check_text, (self.checkbox_rect.right + 8, self.checkbox_rect.y + 1))
+
+    def update(self, title="", subtitle="", detail_lines=None):
         if not self.running:
             return False
 
         step_once = self._process_events()
         while self.paused and self.running and not step_once:
             self._draw_grid()
-            self._draw_status(title, subtitle)
+            self._draw_status(title, subtitle, detail_lines=detail_lines)
             self.pygame.display.flip()
             time.sleep(0.01)
             step_once = self._process_events()
@@ -146,7 +170,7 @@ class PygameRenderer:
             return False
 
         self._draw_grid()
-        self._draw_status(title, subtitle)
+        self._draw_status(title, subtitle, detail_lines=detail_lines)
         self.pygame.display.flip()
         return True
 

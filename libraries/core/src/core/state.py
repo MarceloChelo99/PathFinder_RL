@@ -4,19 +4,11 @@ from core.constants import QUADS
 from core.utils import bucketize, normalize, softmax
 
 
-def get_state(env):
-    """
-    Observation:
-      - Pool local tiles (3x3 around agent) into 4 quadrant averages (UL,UR,DR,DL)
-      - Pool local pheromones similarly
-      - Convert each set into relative strengths summing to 1
-      - Bucketize strengths -> discrete state for tabular Q-learning
+QUAD_NAMES = ("UL", "UR", "DR", "DL")
 
-    Tile encoding for pooling:
-      blue ('0') = +1
-      red  ('1') = -1
-      out-of-bounds never happens (clamped), but treat as -2 if needed.
-    """
+
+def get_state_debug(env):
+    """Return state plus intermediate pooled/normalized features for debugging."""
     x0, y0 = env.pos
 
     tile_avgs = []
@@ -50,4 +42,28 @@ def get_state(env):
     tile_b = tuple(bucketize(v, bins) for v in tile_strength)
     pher_b = tuple(bucketize(v, bins) for v in pher_strength)
 
-    return tile_b + pher_b  # 8 small integers
+    return {
+        "state": tile_b + pher_b,
+        "tile_avgs": tuple(tile_avgs),
+        "pher_avgs": tuple(pher_avgs),
+        "tile_strength": tuple(tile_strength),
+        "pher_strength": tuple(pher_strength),
+        "tile_buckets": tile_b,
+        "pher_buckets": pher_b,
+    }
+
+
+def get_state(env):
+    """
+    Observation:
+      - Pool local tiles (3x3 around agent) into 4 quadrant averages (UL,UR,DR,DL)
+      - Pool local pheromones similarly
+      - Convert each set into relative strengths summing to 1
+      - Bucketize strengths -> discrete state for tabular Q-learning
+
+    Tile encoding for pooling:
+      blue ('0') = +1
+      red  ('1') = -1
+      out-of-bounds never happens (clamped), but treat as -2 if needed.
+    """
+    return get_state_debug(env)["state"]
