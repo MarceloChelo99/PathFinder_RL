@@ -8,7 +8,7 @@ from core.constants import ACTIONS
 class GridWorld:
     def __init__(self, grid, start, goal):
         """
-        grid: list[str], chars '0' (blue) and '1' (red)
+        grid: list[str], chars '0' (free) and '1' (obstacle/wall)
         start, goal: (x,y)
         """
         self.grid = grid
@@ -27,19 +27,23 @@ class GridWorld:
     def step(self, action_idx):
         dx, dy = ACTIONS[action_idx]
         x, y = self.pos
-        nx, ny = x + dx, y + dy
+        tx, ty = x + dx, y + dy
 
-        # Clamp to bounds; edges are red anyway
-        nx = max(0, min(self.W - 1, nx))
-        ny = max(0, min(self.H - 1, ny))
+        hit_wall = not (0 <= tx < self.W and 0 <= ty < self.H)
+        nx = max(0, min(self.W - 1, tx))
+        ny = max(0, min(self.H - 1, ty))
 
         self.pos = (nx, ny)
         x, y = self.pos
 
-        # Blue tiles are neutral (0 reward), red tiles are penalized.
-        tile = self.grid[y][x]  # '0' blue, '1' red
+        tile = self.grid[y][x]  # '0' free, '1' obstacle
+        hit_obstacle = tile == "1"
+
+        # Free tile is neutral; obstacle/wall is penalized.
         tile_reward = 0.0 if tile == "0" else -1.0
         r = tile_reward
+        if hit_wall:
+            r -= 1.0
 
         # --- pheromone dynamics in [0,1] ---
         decay = 0.97
@@ -48,33 +52,37 @@ class GridWorld:
             for xx in range(self.W):
                 row[xx] *= decay
 
-        # diminishing deposit, bounded to 1
         deposit_rate = 0.6
         self.P[y][x] += deposit_rate * (1.0 - self.P[y][x])
 
-        # penalize high-pheromone cells (discourage loops)
         pher_penalty = 1.0
         r -= pher_penalty * self.P[y][x]
 
-        done = (self.pos == self.goal)
-        if done:
-            r += 50  # terminal bonus (optional)
+        reached_goal = self.pos == self.goal
+        done = reached_goal or hit_wall or hit_obstacle
+        if reached_goal:
+            r += 50
 
-        return self.pos, r, done
+        info = {
+            "hit_wall": hit_wall,
+            "hit_obstacle": hit_obstacle,
+            "reached_goal": reached_goal,
+        }
+        return self.pos, r, done, info
 
 
 def random_grid(W=12, H=8, p_blue=0.7):
     """
     Red border, random interior:
-      '0' = blue (good)
-      '1' = red  (bad)
+      '0' = free cell
+      '1' = obstacle/wall
     """
     grid = []
     for y in range(H):
         row = []
         for x in range(W):
             if x == 0 or x == W - 1 or y == 0 or y == H - 1:
-                row.append("1")  # red border
+                row.append("1")
             else:
                 row.append("0" if random.random() < p_blue else "1")
         grid.append("".join(row))

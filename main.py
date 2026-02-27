@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 from core.environment import GridWorld, random_grid
 from core.training import greedy_run, q_learning
 
@@ -9,18 +7,19 @@ if __name__ == "__main__":
     TRAIN_VISUALIZE = True
     GREEDY_VISUALIZE = True
 
-    grid = random_grid(W=12, H=8, p_blue=0.7)
+    # Larger map for richer navigation behavior.
+    grid = random_grid(W=24, H=16, p_blue=0.72)
 
-    # place start/goal away from red border
+    # place start/goal away from the border walls
     start = (1, 1)
-    goal = (10, 6)
+    goal = (22, 14)
 
     env = GridWorld(grid, start=start, goal=goal)
 
     Q = q_learning(
         env,
-        episodes=200,
-        max_steps=200,
+        episodes=220,
+        max_steps=300,
         alpha=0.2,
         gamma=0.95,
         eps=0.4,
@@ -33,12 +32,8 @@ if __name__ == "__main__":
     greedy_run(
         env,
         Q,
-        max_steps=200,
+        max_steps=300,
         delay=0.05,
         show_pheromone=True,
         visualize=GREEDY_VISUALIZE,
     )
-
-    # Keep window open after script ends
-    plt.ioff()
-    plt.show()
