@@ -23,7 +23,7 @@ def get_state_debug(env):
                 t_val = -2.0
                 p_val = 1.0
             else:
-                t_val = 1.0 if env.grid[y][x] == "0" else -1.0
+                t_val = 0.0 if env.grid[y][x] == "0" else -1.0
                 p_val = env.P[y][x]
             t_sum += t_val
             p_sum += p_val
@@ -31,15 +31,15 @@ def get_state_debug(env):
         tile_avgs.append(t_sum / 4.0)
         pher_avgs.append(p_sum / 4.0)
 
-    tile_strength = softmax(tile_avgs)  # sums to 1
+    tile_strength = tile_avgs #softmax(tile_avgs)  # sums to 1
 
     # lower pheromone is better -> goodness then normalize
     pher_goodness = [1.0 / (1.0 + p) for p in pher_avgs]
     pher_strength = normalize(pher_goodness)  # sums to 1
 
     # Discretize into buckets
-    bins = [0.1, 0.3, 0.5, 0.7]  # 5 buckets => 0..4
-    tile_b = tuple(bucketize(v, bins) for v in tile_strength)
+    bins = [0.2, 0.4, 0.6, 0.8]  # 5 buckets => 0..4
+    tile_b = tuple(tile_strength) #tuple(bucketize(v, bins) for v in tile_strength)
     pher_b = tuple(bucketize(v, bins) for v in pher_strength)
 
     return {

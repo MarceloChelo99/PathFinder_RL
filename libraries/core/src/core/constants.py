@@ -1,4 +1,5 @@
 """Shared constants for the path-finding RL domain."""
+from enum import Enum
 
 ACTIONS = [
     (0, -1),    # 0  UP

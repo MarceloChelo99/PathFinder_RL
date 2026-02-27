@@ -42,8 +42,8 @@ class GridWorld:
         # Free tile is neutral; obstacle/wall is penalized.
         tile_reward = 0.0 if tile == "0" else -1.0
         r = tile_reward
-        if hit_wall:
-            r -= 1.0
+        # if hit_wall:
+        #     r -= 1.0
 
         # --- pheromone dynamics in [0,1] ---
         decay = 0.97
@@ -55,13 +55,13 @@ class GridWorld:
         deposit_rate = 0.6
         self.P[y][x] += deposit_rate * (1.0 - self.P[y][x])
 
-        pher_penalty = 1.0
+        pher_penalty = 0
         r -= pher_penalty * self.P[y][x]
 
         reached_goal = self.pos == self.goal
         done = reached_goal or hit_wall or hit_obstacle
         if reached_goal:
-            r += 50
+            r += 0
 
         info = {
             "hit_wall": hit_wall,
@@ -69,6 +69,47 @@ class GridWorld:
             "reached_goal": reached_goal,
         }
         return self.pos, r, done, info
+
+    def render(self, show_pheromone: bool = True):
+        """
+        Prints the grid to the terminal.
+
+        Legend:
+          A = agent, S = start, G = goal
+          █ = obstacle, · = free space
+          0-9 = pheromone level (if show_pheromone=True) on free tiles
+        """
+        ax, ay = self.pos
+        sx, sy = self.start
+        gx, gy = self.goal
+
+        lines = []
+        for y in range(self.H):
+            row_chars = []
+            for x in range(self.W):
+                if (x, y) == (ax, ay):
+                    ch = "A"
+                elif (x, y) == (sx, sy):
+                    ch = "S"
+                elif (x, y) == (gx, gy):
+                    ch = "G"
+                else:
+                    tile = self.grid[y][x]
+                    if tile == "1":
+                        ch = "█"
+                    else:
+                        if show_pheromone:
+                            # Map pheromone [0,1] -> digit 0..9
+                            p = self.P[y][x]
+                            d = int(max(0.0, min(1.0, p)) * 9 + 1e-9)
+                            ch = str(d) if d > 0 else "·"
+                        else:
+                            ch = "·"
+                row_chars.append(ch)
+            lines.append(" ".join(row_chars))
+
+        print("\n".join(lines))
+
 
 
 def random_grid(W=12, H=8, p_blue=0.7):

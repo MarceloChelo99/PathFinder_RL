@@ -95,23 +95,22 @@ def q_learning(
                     renderer.close()
                     return Q
                 time.sleep(delay)
-
             s = s2
-            if done:
-                if show and renderer:
-                    keep_running = renderer.update(
-                        title=(
-                            f"TRAIN ep {ep}/{episodes} ended by {_termination_reason(info)} at step {t}; "
-                            f"episode_total={total_r:.2f}"
-                        ),
-                        subtitle=f"terminal_state={s2}  terminal_pos={env.pos}",
-                        detail_lines=_debug_lines(renderer, Q[s2], debug2),
-                    )
-                    if not keep_running:
-                        renderer.close()
-                        return Q
-                    time.sleep(delay)
-                break
+            if not done:
+                pass
+                # if show and renderer:
+                #     keep_running = renderer.update(
+                #         title=(
+                #             f"TRAIN ep {ep}/{episodes} ended by {_termination_reason(info)} at step {t}; "
+                #             f"episode_total={total_r:.2f}"
+                #         ),
+                #         subtitle=f"terminal_state={s2}  terminal_pos={env.pos}",
+                #         detail_lines=_debug_lines(renderer, Q[s], debug2),
+                #     )
+                #     if not keep_running:
+                #         renderer.close()
+                #         return Q
+                #     time.sleep(delay)
 
         eps = max(0.01, eps * 0.995)
 
