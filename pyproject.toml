@@ -10,5 +10,6 @@ python = ">=3.11,<4.0"
 numpy = "^2.0.0"
 pandas = "^3.0.0"
 matplotlib = "^3.10.8"
+pygame = "^2.6.1"
 
 core = { path = "./libraries/core", develop = true }

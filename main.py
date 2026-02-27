@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 from core.environment import GridWorld, random_grid
 from core.training import greedy_run, q_learning
 
@@ -11,7 +9,7 @@ if __name__ == "__main__":
 
     grid = random_grid(W=12, H=8, p_blue=0.7)
 
-    # place start/goal away from red border
+    # place start/goal away from the border walls
     start = (1, 1)
     goal = (10, 6)
 
@@ -38,7 +36,3 @@ if __name__ == "__main__":
         show_pheromone=True,
         visualize=GREEDY_VISUALIZE,
     )
-
-    # Keep window open after script ends
-    plt.ioff()
-    plt.show()
