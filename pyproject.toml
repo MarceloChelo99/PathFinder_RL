@@ -1,0 +1,14 @@
+[tool.poetry]
+package-mode = false
+name = "example-project"
+version = "0.1.0"
+description = "Example Poetry project with numpy dependency"
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+numpy = "^2.0.0"
+pandas = "^3.0.0"
+matplotlib = "^3.10.8"
+
+core = { path = "./libraries/core", develop = true }
