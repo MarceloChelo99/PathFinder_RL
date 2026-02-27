@@ -28,8 +28,9 @@ def get_state_debug(env):
             t_sum += t_val
             p_sum += p_val
 
-        tile_avgs.append(t_sum / 4.0)
-        pher_avgs.append(p_sum / 4.0)
+        n_tiles = float(len(quad))
+        tile_avgs.append(t_sum / n_tiles)
+        pher_avgs.append(p_sum / n_tiles)
 
     tile_strength = tile_avgs #softmax(tile_avgs)  # sums to 1
 
@@ -56,7 +57,7 @@ def get_state_debug(env):
 def get_state(env):
     """
     Observation:
-      - Pool local tiles (3x3 around agent) into 4 quadrant averages (UL,UR,DR,DL)
+      - Pool local tiles (5x5 around agent, radius=2) into 4 quadrant averages (UL,UR,DR,DL)
       - Pool local pheromones similarly
       - Convert each set into relative strengths summing to 1
       - Bucketize strengths -> discrete state for tabular Q-learning
